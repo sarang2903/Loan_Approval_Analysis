@@ -1,28 +1,15 @@
 import streamlit as st
 import pandas as pd
 
-st.title("Dataset Checker App")
+st.title("Dataset Checker")
 
-try:
-    file = st.file_uploader("Upload your CSV file", type=["csv"])
+st.write("App started successfully ✅")
 
-    if file is not None:
-        df = pd.read_csv(file)
+file = st.file_uploader("Upload CSV", type=["csv"])
 
-        st.write("Preview:")
-        st.dataframe(df.head())
-
-        st.write("Shape:", df.shape)
-
-        st.write("Missing Values:")
-        st.write(df.isnull().sum())
-
-        st.write("Data Types:")
-        st.write(df.dtypes)
-
-    else:
-        st.info("Please upload a CSV file to check.")
-
-except Exception as e:
-    st.error("Error found ❌")
-    st.write(e)
+if file:
+    st.write("File uploaded ✅")
+    df = pd.read_csv(file)
+    st.dataframe(df.head())
+else:
+    st.warning("Please upload a CSV file")
