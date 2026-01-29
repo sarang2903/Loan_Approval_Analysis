@@ -11,7 +11,7 @@ st.title("🏦 Loan Prediction Dataset - EDA + Loan Approval Chance")
 # =========================
 # Load Dataset
 # =========================
-df = pd.read_csv("../DataSets/LP_Train.csv")
+df = pd.read_csv("LP_Train.csv")
 
 st.subheader("📌 Raw Dataset")
 st.dataframe(df)
