@@ -1,158 +1,105 @@
 import streamlit as st
-import pandas as pd
 
 # =========================
 # Page Config
 # =========================
 st.set_page_config(
-    page_title="Loan Approval Chance Checker",
+    page_title="Loan Approval Checker",
     page_icon="🏦",
     layout="centered"
 )
 
 # =========================
-# Title & Intro
+# Title
 # =========================
-st.title("🏦 Loan Approval Chance Checker")
-st.caption("Check your loan approval probability instantly 🚀")
+st.title("🏦 Loan Approval Checker")
+st.write("Fill in your details to check whether your loan will be approved or not.")
 
-st.markdown(
-    """
-    👋 **Welcome!**  
-    Fill in your details below to estimate your loan approval chance.  
-    This is a **rule-based score**, easy to understand and beginner-friendly.
-    """
-)
+st.divider()
 
 # =========================
-# Sidebar (Optional Help)
+# User Inputs
 # =========================
-st.sidebar.header("ℹ️ How it works")
-st.sidebar.write(
-    """
-    Your score is based on:
-    - Credit History  
-    - Total Income  
-    - Loan Amount  
-    - Loan Term  
+st.subheader("📝 Enter Loan Details")
 
-    Higher score = better approval chance ✅
-    """
-)
-
-# =========================
-# User Input Section
-# =========================
-st.subheader("📝 Enter Your Details")
-
-name = st.text_input("👤 Applicant Name", placeholder="e.g. Rahul")
-
-income = st.slider(
-    "💰 Applicant Income",
+applicant_income = st.number_input(
+    "Applicant Income",
     min_value=0,
-    max_value=50000,
-    value=8000,
-    step=500
+    placeholder="Enter applicant income"
 )
 
-co_income = st.slider(
-    "💰 Co-applicant Income",
+coapplicant_income = st.number_input(
+    "Co-applicant Income",
     min_value=0,
-    max_value=30000,
-    value=0,
-    step=500
+    placeholder="Enter co-applicant income"
 )
 
-loan_amount = st.slider(
-    "🏷️ Loan Amount (in thousands)",
-    min_value=50,
-    max_value=500,
-    value=150,
-    step=10
+loan_amount = st.number_input(
+    "Loan Amount",
+    min_value=0,
+    placeholder="Enter loan amount"
 )
 
-loan_term = st.selectbox(
-    "📆 Loan Term (Months)",
-    [12, 18, 24, 30, 36, 48]
+loan_term = st.number_input(
+    "Loan Term (in months)",
+    min_value=0,
+    placeholder="e.g. 360"
 )
 
-credit_history = st.radio(
-    "📄 Credit History",
-    options=[1.0, 0.0],
-    format_func=lambda x: "Good (No defaults)" if x == 1.0 else "Bad / No history"
+credit_history = st.selectbox(
+    "Credit History",
+    options=[1, 0],
+    format_func=lambda x: "Good (1)" if x == 1 else "Bad (0)"
 )
 
 # =========================
-# Loan Chance Logic
+# Loan Decision Logic
 # =========================
-def loan_chance(income, co_income, loan_amount, loan_term, credit_history):
-    score = 0
+def loan_decision(app_income, co_income, loan_amt, term, credit):
+    total_income = app_income + co_income
 
-    # Credit History
-    score += 50 if credit_history == 1.0 else 10
+    # Simple approval rules
+    if credit == 0:
+        return "Rejected", "Poor credit history"
 
-    # Income
-    total_income = income + co_income
-    if total_income >= 10000:
-        score += 25
-    elif total_income >= 5000:
-        score += 15
-    else:
-        score += 5
+    if total_income < 5000:
+        return "Rejected", "Income is too low"
 
-    # Loan Amount
-    if loan_amount <= 150:
-        score += 15
-    elif loan_amount <= 250:
-        score += 10
-    else:
-        score += 5
+    if loan_amt > total_income * 10:
+        return "Rejected", "Loan amount too high compared to income"
 
-    # Loan Term
-    score += 10 if loan_term <= 360 else 5
+    if term > 480:
+        return "Rejected", "Loan term is too long"
 
-    return min(score, 100)
+    return "Approved", "Meets basic eligibility criteria"
 
 # =========================
 # Button Action
 # =========================
 st.divider()
 
-if st.button("🔍 Check Loan Approval Chance", use_container_width=True):
-    chance = loan_chance(income, co_income, loan_amount, loan_term, credit_history)
+if st.button("🔍 Check Loan Status", use_container_width=True):
 
-    st.subheader(f"👤 Applicant: {name if name else 'User'}")
-
-    # Progress Bar
-    st.progress(chance)
-
-    st.markdown(f"### ✅ **Approval Chance: {chance}%**")
-
-    # Result Messages
-    if chance >= 70:
-        st.success("🎉 Excellent! You have a **high chance** of loan approval.")
-        st.balloons()
-    elif chance >= 40:
-        st.warning(
-            "⚠️ Moderate chance.\n\n"
-            "💡 Tip: Improve credit history or reduce loan amount."
-        )
+    if applicant_income == 0 or loan_amount == 0 or loan_term == 0:
+        st.warning("⚠️ Please fill all required fields.")
     else:
-        st.error(
-            "❌ Low chance of approval.\n\n"
-            "📌 Credit history plays a major role."
+        status, reason = loan_decision(
+            applicant_income,
+            coapplicant_income,
+            loan_amount,
+            loan_term,
+            credit_history
         )
 
-    # Friendly Summary
-    with st.expander("📊 Why this score?"):
-        st.write(
-            f"""
-            - **Total Income:** ₹{income + co_income}  
-            - **Loan Amount:** ₹{loan_amount}k  
-            - **Loan Term:** {loan_term} months  
-            - **Credit History:** {"Good" if credit_history == 1.0 else "Poor"}  
-            """
-        )
+        st.subheader("📄 Loan Decision")
+
+        if status == "Approved":
+            st.success("✅ **Loan Approved**")
+            st.write(f"**Reason:** {reason}")
+            st.balloons()
+        else:
+            st.error("❌ **Loan Rejected**")
+            st.write(f"**Reason:** {reason}")
 
 st.divider()
-st.caption("⚠️ This is a demo estimator. For real approval, banks use ML models & detailed checks.")
+st.caption("⚠️ This is a rule-based demo system, not a real bank decision.")
