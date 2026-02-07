@@ -73,7 +73,7 @@ loan_amount = st.slider(
 
 loan_term = st.selectbox(
     "📆 Loan Term (Months)",
-    [120, 180, 240, 300, 360, 480]
+    [12, 18, 24, 30, 36, 48]
 )
 
 credit_history = st.radio(
